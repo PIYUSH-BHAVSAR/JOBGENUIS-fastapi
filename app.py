@@ -3,7 +3,7 @@ from fastapi.middleware.cors import CORSMiddleware
 import fitz  # PyMuPDF
 import google.generativeai as genai
 import os 
-from io import BytesIO
+
 
 app = FastAPI()
 
@@ -20,11 +20,12 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-# In-memory PDF processing
+
 def extract_text_from_pdf(file: UploadFile):
-    pdf_bytes = BytesIO(file.file.read())
-    doc = fitz.open(stream=pdf_bytes, filetype="pdf")
-    text = "".join([page.get_text() for page in doc])
+    doc = fitz.open(stream=file.file.read(), filetype="pdf")
+    text = ""
+    for page in doc:
+        text += page.get_text()
     return text
 
 @app.post("/analyze/")
@@ -93,6 +94,7 @@ async def analyze(resume: UploadFile = File(...), job_description: str = Form(""
         "jd_analysis": jd_response.text,
         "interview_questions": question_response.text
     }
+
 if __name__ == "__main__":
     import uvicorn
     uvicorn.run("app:app", host="0.0.0.0", port=8000, reload=True)
