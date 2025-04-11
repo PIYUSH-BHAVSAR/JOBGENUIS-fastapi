@@ -73,7 +73,7 @@ async def analyze(resume: UploadFile = File(...), job_description: str = Form(""
             "jd_analysis": jd_response.text,
             "interview_questions": question_response.text
         }
-        finally:
+    finally:
         # Explicitly close the uploaded file stream (important for cleanup in production)
             resume.file.close()
 
