@@ -3,6 +3,7 @@ from fastapi.middleware.cors import CORSMiddleware
 import fitz  # PyMuPDF
 import google.generativeai as genai
 import os 
+from io import BytesIO
 
 app = FastAPI()
 
