@@ -30,70 +30,52 @@ def extract_text_from_pdf(file: UploadFile):
 
 @app.post("/analyze/")
 async def analyze(resume: UploadFile = File(...), job_description: str = Form("")):
-    resume_text = extract_text_from_pdf(resume)
-    
-    model = genai.GenerativeModel("gemini-2.0-flash")
+     try:
+        resume_text = extract_text_from_pdf(resume)
 
-    # 1. Role Matching (Concise with Bullets)
-    role_prompt = f"""
-    Analyze the following resume and suggest the top 3 most suitable job roles based on skills, experience, and qualifications.
+        model = genai.GenerativeModel("gemini-2.0-flash")
 
-    For each role, include:
-    - **Role Title**
-    - **One-line Rationale**
-    - **Key Skill Matches** (bulleted)
-    - **Relevant Experience** (bulleted)
+        # 1. Role Matching
+        role_prompt = f"""
+        Analyze the following resume and suggest the top 3 most suitable job roles...
 
-    Respond in a concise, structured format using bullet points.
+        Resume:
+        {resume_text}
+        """
+        role_response = model.generate_content(role_prompt)
 
-    Resume:
-    {resume_text}
-    """
-    role_response = model.generate_content(role_prompt)
-    # 2. JD Compatibility (Score, Matches & Gaps in Bullets)
-    jd_prompt = f"""
-    Compare the resume below to the job description and provide a concise, bullet-formatted analysis.
+        # 2. JD Compatibility
+        jd_prompt = f"""
+        Compare the resume below to the job description...
 
-    Include:
-    - **Overall Compatibility Score (0–100%)**
-    - **Key Matches** (3–5 bullets)
-    - **Missing or Weak Areas** (3–5 bullets)
+        Resume:
+        {resume_text}
 
-    Use bullet points and keep the language brief and clear.
+        Job Description:
+        {job_description}
+        """
+        jd_response = model.generate_content(jd_prompt)
 
-    Resume:
-    {resume_text}
+        # 3. Interview Questions
+        question_prompt = f"""
+        Generate 8 concise interview questions...
 
-    Job Description:
-    {job_description}
-    """
-    jd_response = model.generate_content(jd_prompt)
-    # 3. Interview Questions (Expanded to 8 with Clear Categories)
-    question_prompt = f"""
-    Generate 8 concise interview questions based on the resume and job description provided.
+        Resume:
+        {resume_text}
 
-    Categories:
-    - 2 **Behavioral**
-    - 2 **Technical**
-    - 2 **Situational**
-    - 1 **Resume-Based**
-    - 1 **Role-Specific**
+        Job Description:
+        {job_description}
+        """
+        question_response = model.generate_content(question_prompt)
 
-    Use bullet points and label each question by category. Keep each question short and direct.
-
-    Resume:
-    {resume_text}
-
-    Job Description:
-    {job_description}
-    """
-    question_response = model.generate_content(question_prompt)
-
-    return {
-        "role_match": role_response.text,
-        "jd_analysis": jd_response.text,
-        "interview_questions": question_response.text
-    }
+        return {
+            "role_match": role_response.text,
+            "jd_analysis": jd_response.text,
+            "interview_questions": question_response.text
+        }
+    finally:
+        # Explicitly close the uploaded file stream (important for cleanup in production)
+        resume.file.close()
 
 if __name__ == "__main__":
     import uvicorn
