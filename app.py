@@ -19,11 +19,11 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
+# In-memory PDF processing
 def extract_text_from_pdf(file: UploadFile):
-    doc = fitz.open(stream=file.file.read(), filetype="pdf")
-    text = ""
-    for page in doc:
-        text += page.get_text()
+    pdf_bytes = BytesIO(file.file.read())
+    doc = fitz.open(stream=pdf_bytes, filetype="pdf")
+    text = "".join([page.get_text() for page in doc])
     return text
 
 @app.post("/analyze/")
