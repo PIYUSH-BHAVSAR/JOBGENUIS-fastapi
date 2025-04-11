@@ -92,3 +92,6 @@ async def analyze(resume: UploadFile = File(...), job_description: str = Form(""
         "jd_analysis": jd_response.text,
         "interview_questions": question_response.text
     }
+if __name__ == "__main__":
+    import uvicorn
+    uvicorn.run("app:app", host="0.0.0.0", port=8000, reload=True)
