@@ -30,7 +30,7 @@ def extract_text_from_pdf(file: UploadFile):
 
 @app.post("/analyze/")
 async def analyze(resume: UploadFile = File(...), job_description: str = Form("")):
-     try:
+    try:
         resume_text = extract_text_from_pdf(resume)
 
         model = genai.GenerativeModel("gemini-2.0-flash")
@@ -73,9 +73,9 @@ async def analyze(resume: UploadFile = File(...), job_description: str = Form(""
             "jd_analysis": jd_response.text,
             "interview_questions": question_response.text
         }
-    finally:
+        finally:
         # Explicitly close the uploaded file stream (important for cleanup in production)
-        resume.file.close()
+            resume.file.close()
 
 if __name__ == "__main__":
     import uvicorn
